@@ -172,21 +172,22 @@
 
   /* ===== Responsive ===== */
   @media (max-width: 900px) {
-    .app { grid-template-columns: 1fr; }
-    #sidebar {
-      position: fixed;
-      left: 0; top: 68px; bottom: 0;
-      width: 280px;
-      transform: translateX(-100%);
-      box-shadow: 8px 0 30px rgba(0,0,0,.55);
-    }
-    #sidebar.open { transform: translateX(0); }
-    body.sidebar-closed #sidebar { transform: translateX(-100%); }
-    header { position: fixed; top:0; left:0; width:100%; z-index: 45; }
-    main { padding-top: 84px; }
-    canvas { height: 360px; }
-    #float-toggle { left: 8px; top: 55%; width: 34px; height: 34px; border-radius: 8px; }
+  .app { grid-template-columns: 1fr; }
+  #sidebar {
+    position: fixed;
+    left: 0; top: 68px; bottom: 0;
+    width: 280px;
+    transform: translateX(-100%);
+    box-shadow: 8px 0 30px rgba(0,0,0,.55);
   }
+  #sidebar.open { transform: translateX(0); }
+  body.sidebar-closed #sidebar { transform: translateX(-100%); }
+  header { position: fixed; top:0; left:0; width:100%; z-index: 45; }
+  main { padding-top: 84px; }
+  canvas { height: 360px; }
+  #float-toggle { left: 8px; top: 55%; width: 34px; height: 34px; border-radius: 8px; }
+}
+
 .palette-dot.active { outline: 3px solid rgba(255,255,255,0.8); transform: scale(1.25); }
 /* Damier de fond (aperçu de la transparence) */
   #canvas-container {
