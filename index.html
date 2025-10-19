@@ -1,137 +1,1225 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ange Niandré Art — Generative Art Studio — Premium Generator v1.0</title>
-  <link rel="stylesheet" href="assets/ui.css" />
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Ange Niandré Art - Algorythmic Art Studio</title>
+<style>
+  /* ===== Base Reset ===== */
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    background: radial-gradient(ellipse at top, #0b0b28, #0a0a18);
+    color: #e7ebff;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow: hidden;
+  }
+
+  /* ===== Header ===== */
+  header {
+    height: 68px;
+    padding: 0.9rem 1.25rem;
+    border-bottom: 2px solid rgba(42,42,74,0.55);
+    background: linear-gradient(to bottom, rgba(10,10,42,0.55), rgba(10,10,26,0.4));
+    display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  }
+  .brand { display: flex; flex-direction: column; }
+  .brand h1 {
+    font-size: 1.5rem;
+    background: linear-gradient(45deg,#a0a0ff,#70c0ff,#ff70c0,#a0a0ff);
+    background-size: 200% 200%;
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    animation: shimmer 3s ease-in-out infinite;
+  }
+  .brand .subtitle { font-size: .9rem; opacity: .92; color: #dfe8ff; }
+  @keyframes shimmer { 0%,100%{background-position:0% 50%} 50%{background-position:100% 50%} }
+
+  /* ===== App Grid ===== */
+  .app {
+    display: grid;
+    grid-template-columns: 280px 1fr; /* final width */
+    grid-template-rows: 1fr;
+    height: calc(100vh - 68px);
+  }
+
+  /* ===== Sidebar ===== */
+  #sidebar {
+    width: 280px;
+    padding: 1rem;
+    background: linear-gradient(180deg, rgba(6,6,20,0.6), rgba(6,6,16,0.45));
+    border-right: 1px solid rgba(58,58,90,0.25);
+    overflow-y: auto;
+    height: 100%;
+    position: relative;
+    transform: translateX(0);
+    transition: transform .32s cubic-bezier(.2,.9,.2,1);
+    z-index: 40;
+  }
+  body.sidebar-closed #sidebar { transform: translateX(-100%); }
+
+  .side-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:.75rem }
+  #sidebar h2 { font-size: 1.05rem; color:#a9baff; }
+
+  .card {
+    background: rgba(26,26,58,0.6);
+    border: 1px solid rgba(58,58,106,0.32);
+    border-radius: 12px;
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+  .card h3 { margin-bottom: .6rem; color: #cfe1ff; font-size: .96rem; }
+
+  .row { margin: .6rem 0; }
+  .row label { display:block; margin-bottom:.35rem; font-size:.9rem; color:#e9edff; }
+  .val { float:right; font-size:.8rem; background:#1a1a3a; color:#a0b7ff; padding:.18rem .5rem; border-radius:6px; min-width:42px; text-align:center; }
+  input[type="range"] { width:100%; height:6px; background:#2e2e2e; border-radius:3px; -webkit-appearance:none; }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance:none; width:16px; height:16px; border-radius:50%;
+    background: linear-gradient(45deg,#a0a0ff,#70c0ff); box-shadow:0 2px 5px rgba(0,0,0,0.4); cursor: pointer;
+  }
+
+  .preset { display:flex; align-items:center; gap:.6rem; padding:.6rem; border-radius:10px;
+            background: rgba(40,40,80,0.45); border:1px solid rgba(74,74,138,0.15); cursor:pointer; margin-bottom:.5rem; }
+  .preset.active { background: linear-gradient(135deg,#4a4a8a,#5a5aaa); border-color:#70c0ff; }
+  .products { display:flex; gap:.4rem; flex-wrap:wrap; }
+  .chip { padding:.44rem .6rem; border-radius:8px; background:rgba(30,30,60,0.58); border:1px solid rgba(74,74,138,0.14); font-size:.85rem; cursor:pointer; }
+  .chip.selected { background:linear-gradient(135deg,#3a5ccc,#4a6cdd); color:#fff; border-color:#7ec0ff; }
+  .res { display:inline-block; padding:.35rem .6rem; border-radius:14px; background:rgba(40,40,80,0.45); border:1px solid rgba(74,74,138,0.14); font-size:.82rem; cursor:pointer; }
+  .res.active { background: linear-gradient(135deg,#6a3093,#a044ff); color:#fff; border-color:#b054ff; }
+
+  /* Aspect ratio chips */
+  .ratio { display:inline-block; padding:.35rem .6rem; border-radius:14px; background:rgba(40,40,80,0.45); border:1px solid rgba(74,74,138,0.14); font-size:.82rem; cursor:pointer; }
+  .ratio.active { background: linear-gradient(135deg,#0083b0,#00b4db); color:#fff; border-color:#7ec0ff; }
+
+  /* ===== Main ===== */
+  main { padding: 1rem; overflow:auto; height:100%; position: relative; }
+
+  /* Toolbar */
+  .toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; margin-bottom:1rem }
+  .styles { display:flex; gap:.5rem; flex-wrap:wrap; }
+  .style-btn {
+    padding:.48rem .85rem; border-radius:20px; border:1px solid rgba(58,58,106,.32);
+    background: rgba(26,26,58,.62); color:#d7dbff; font-size:.9rem; cursor:pointer;
+  }
+  .style-btn.active { background:linear-gradient(135deg,#3a5ccc,#4a6cdd); color:#fff; box-shadow:0 6px 18px rgba(58,92,204,.18) }
+
+  .actions { display:flex; gap:.6rem; flex-wrap:wrap; }
+  button.action {
+    padding:.62rem .95rem; border-radius:8px; border:1px solid rgba(74,74,138,.18);
+    background:linear-gradient(135deg,#3a3a6a,#4a4a8a); color:#e7ebff; font-weight:600; cursor:pointer;
+  }
+  button.primary { background:linear-gradient(135deg,#28a745,#34ce57); border:none; color:#fff; }
+  button.ghost   { background:transparent; }
+
+  /* Canvas Area */
+  .canvas-wrap { background:#050510; border:2px solid rgba(42,42,74,0.42); border-radius:12px; padding:.6rem; }
+  canvas { width:100%; height:520px; display:block; border-radius:8px; background:transparent; }
+
+  .progress { width:100%; height:6px; background:#202020; border-radius:3px; overflow:hidden; margin-top:.5rem; }
+  .bar { height:100%; width:0%; background:linear-gradient(45deg,#a0a0ff,#70c0ff); transition: width .25s ease; }
+
+  .loading { position:absolute; inset:0; display:none; align-items:center; justify-content:center;
+             background:rgba(5,5,16,0.58); border-radius:12px; z-index:10; }
+  .loading.active { display:flex; }
+  .spinner { width:50px; height:50px; border:4px solid #333; border-top:4px solid #a0a0ff; border-radius:50%; animation:spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .tabs { margin-top: 1rem; }
+  .tab  { display: none; padding: 1rem 0; }
+  .tab.active { display:block; }
+  .grid { display:grid; grid-template-columns: repeat(auto-fit, minmax(160px,1fr)); gap:1rem; }
+
+  .note { position: fixed; top: 18px; right: 20px; padding:.85rem 1rem; background:linear-gradient(135deg,#28a745,#34ce57);
+          color:#fff; border-radius:8px; box-shadow:0 8px 20px rgba(0,0,0,.35); transform: translateX(400px);
+          transition: transform .28s ease; z-index: 9999; }
+  .note.show { transform: translateX(0); }
+  .note.error { background: linear-gradient(135deg,#dc3545,#e74c3c); }
+
+  /* ===== Floating Toggle (36px rounded-square) ===== */
+  #float-toggle {
+    position: fixed;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 36px; height: 36px; border-radius: 10px;
+    background: rgba(40,40,80,0.88);
+    border: 1px solid rgba(112,192,255,0.12);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+    display:flex; align-items:center; justify-content:center;
+    cursor:pointer; z-index: 60;
+    transition: all .25s ease;
+  }
+  #float-toggle:hover { background: rgba(60,60,120,0.92); transform: translateY(-50%) scale(1.05); }
+  #float-toggle .icon { font-size:.92rem; color:#e7efff; transform: rotate(0deg); transition: transform .25s ease; }
+  body.sidebar-closed #float-toggle .icon { transform: rotate(180deg); }
+  #float-toggle:focus { outline:2px solid rgba(112,192,255,.25); }
+
+  /* ===== Overlay (mobile) ===== */
+  .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:35; }
+  .overlay.show { display:block; }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 900px) {
+    .app { grid-template-columns: 1fr; }
+    #sidebar {
+      position: fixed;
+      left: 0; top: 68px; bottom: 0;
+      width: 280px;
+      transform: translateX(-100%);
+      box-shadow: 8px 0 30px rgba(0,0,0,.55);
+    }
+    #sidebar.open { transform: translateX(0); }
+    body.sidebar-closed #sidebar { transform: translateX(-100%); }
+    header { position: fixed; top:0; left:0; width:100%; z-index: 45; }
+    main { padding-top: 84px; }
+    canvas { height: 360px; }
+    #float-toggle { left: 8px; top: 55%; width: 34px; height: 34px; border-radius: 8px; }
+  }
+.palette-dot.active { outline: 3px solid rgba(255,255,255,0.8); transform: scale(1.25); }
+/* Damier de fond (aperçu de la transparence) */
+  #canvas-container {
+    background-color: transparent;
+    background-image: linear-gradient(45deg, #ccc 25%, transparent 25%), 
+                      linear-gradient(-45deg, #ccc 25%, transparent 25%), 
+                      linear-gradient(45deg, transparent 75%, #ccc 75%), 
+                      linear-gradient(-45deg, transparent 75%, #ccc 75%);
+    background-size: 20px 20px;
+    background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+  }
+@media (min-width: 1024px){
+  #sidebar{ position: sticky; top: 0; height: calc(100vh - 68px); overflow-y: auto; }
+  .app{ grid-template-columns: 320px 1fr; }
+}
+@media (min-width: 1280px){
+  .app{ grid-template-columns: 340px 1fr; }
+}
+</style>
 </head>
 <body>
-  <div class="app">
-    <header class="header">
-      <div class="brand">
-        <div class="brand-title">Ange Niandré Art</div>
-        <div class="brand-sub">Generative Art Studio — <strong>Premium Generator v1.0</strong></div>
-        <div class="brand-sub note">Redbubble Optimized Designs</div>
-      </div>
-    </header>
 
-    <main class="main">
-      <div id="canvas-container">
-        <canvas id="artCanvas"></canvas>
-        <div id="status">Ready…</div>
-      </div>
-
-      <div class="toolbar">
-        <button class="action primary" id="btn-generate" disabled>🎨 Generate</button>
-        <button class="action" id="btn-download-png" disabled>⬇️ Download PNG</button>
-        <button class="action" id="btn-download-svg" disabled>⬇️ Download SVG</button>
-        <span class="hint">Engine modules will enable these actions.</span>
-      </div>
-    </main>
-
-    <aside id="sidebar">
-      <div class="panel">
-        <div class="panel-title">Redbubble Export</div>
-
-        <div class="row">
-          <div class="label">Product</div>
-          <div class="chips" id="products">
-            <div class="chip selected" data-product="tshirt">T-shirt</div>
-            <div class="chip" data-product="tote">Tote</div>
-            <div class="chip" data-product="sticker">Sticker</div>
-            <div class="chip" data-product="poster">Poster</div>
-            <div class="chip" data-product="phonecase">Phonecase</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="label">Aspect Ratio</div>
-          <div class="chips" id="ratios">
-            <div class="chip selected" data-ratio="1:1">1:1</div>
-            <div class="chip" data-ratio="3:2">3:2</div>
-            <div class="chip" data-ratio="4:3">4:3</div>
-            <div class="chip" data-ratio="16:9">16:9</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <div class="label">Resolution</div>
-          <div class="chips" id="res">
-            <div class="chip selected" data-res="standard">Standard</div>
-            <div class="chip" data-res="premium">Premium</div>
-            <div class="chip" data-res="ultra">Ultra</div>
-          </div>
-        </div>
-
-        <div class="row">
-          <label class="checkbox"><input type="checkbox" id="preserve-ar" checked /> Preserve Aspect Ratio</label>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="panel-title">Color & Tone</div>
-
-        <div class="sliders">
-          <label>Hue <input type="range" min="0" max="360" value="0" id="hue" /></label>
-          <label>Saturation <input type="range" min="0" max="2" step="0.1" value="1" id="sat" /></label>
-          <label>Brightness <input type="range" min="0" max="2" step="0.1" value="1" id="bri" /></label>
-          <label>Contrast <input type="range" min="0" max="2" step="0.1" value="1" id="con" /></label>
-        </div>
-
-        <div class="row">
-          <div class="label">Palette</div>
-          <div class="chips" id="palettes">
-            <div class="chip selected">Aurora</div>
-            <div class="chip">Cosmic</div>
-            <div class="chip">Solar</div>
-            <div class="chip">Oceanic</div>
-            <div class="chip">Monochrome</div>
-          </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="row">
-          <label class="checkbox"><input type="checkbox" id="auto-sync" checked /> Synchroniser les paramètres</label>
-        </div>
-
-      </div>
-    </aside>
-
-    <footer class="footer">
-      © 2025 Ange Niandré Art — Generative Art Studio — Premium Generator v1.0. All rights reserved.
-    </footer>
+<header>
+  <div class="brand">
+    <h1>Ange Niandré Art</h1>
+    <div class="subtitle">Algorythmic Art Studio — Premium Generator v4.0</div>
   </div>
+  <div aria-hidden="true" style="opacity:.85;font-size:.92rem;">&nbsp;</div>
+</header>
 
-  <script>
-    const chips = document.querySelectorAll('.chip');
-    chips.forEach(ch => ch.addEventListener('click', () => {
-      const group = ch.parentElement;
-      group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
-      ch.classList.add('selected');
-      document.getElementById('status').textContent = 'UI updated — awaiting engine module…';
-    }));
+<!-- Floating Sidebar Toggle -->
+<button id="float-toggle" aria-label="Toggle settings panel" aria-expanded="true" title="Open / Close menu">
+  <span class="icon" id="float-icon">◀</span>
+</button>
 
-    function fitCanvas(){
-      const wrap = document.getElementById('canvas-container');
-      const c = document.getElementById('artCanvas');
-      const w = wrap.clientWidth, h = wrap.clientHeight;
-      c.width = w; c.height = h;
-      const ctx = c.getContext('2d');
-      const size = 24;
-      for(let y=0;y<h;y+=size){
-        for(let x=0;x<w;x+=size){
-          ctx.fillStyle = ((x/size + y/size)%2===0)?'#1b1c28':'#151625';
-          ctx.fillRect(x,y,size,size);
-        }
-      }
-      ctx.fillStyle = 'rgba(255,255,255,0.6)';
-      ctx.font = '14px monospace';
-      ctx.fillText('Premium Generator v1.0 — UI Skeleton', 16, 26);
+<div class="app" id="app">
+  <!-- ===== Sidebar ===== -->
+  <aside id="sidebar" aria-label="Settings sidebar">
+    <div class="side-header">
+      <h2>Controls</h2>
+    </div>
+
+    <section class="card">
+      <h3>🎚️ Artistic Parameters</h3>
+      <div class="row">
+        <label>Complexity <span class="val" id="complexity-val">60</span></label>
+        <input type="range" id="complexity" min="10" max="100" value="60" />
+      </div>
+      <div class="row">
+        <label>Element Size <span class="val" id="size-val">45</span></label>
+        <input type="range" id="size" min="10" max="80" value="45" />
+      </div>
+      <div class="row">
+        <label>Density <span class="val" id="density-val">70</span></label>
+        <input type="range" id="density" min="20" max="100" value="70" />
+      </div>
+      <div class="row">
+        <label>Symmetry <span class="val" id="symmetry-val">0</span></label>
+        <input type="range" id="symmetry" min="0" max="6" value="0" />
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>🎨 Color Palette</h3>
+      <div class="row">
+        <label>Main Hue <span class="val" id="hue-val">220°</span></label>
+        <input type="range" id="hue" min="0" max="360" value="220" />
+      </div>
+      <div class="row">
+        <label>Saturation <span class="val" id="saturation-val">80</span></label>
+        <input type="range" id="saturation" min="30" max="100" value="80" />
+      </div>
+      <div class="row">
+        <label>Contrast <span class="val" id="contrast-val">70</span></label>
+        <input type="range" id="contrast" min="20" max="100" value="70" />
+      </div>
+      <div class="row">
+        <label>Brightness <span class="val" id="brightness-val">60</span></label>
+        <input type="range" id="brightness" min="20" max="100" value="60" />
+      </div>
+    </section>
+
+    <section class="card">
+      <h3>🛍️ Redbubble Optimized Designs</h3>
+      <div id="preset-list"></div>
+
+      <div class="row" style="margin-top:.6rem;">
+        <div style="font-size:.86rem;margin-bottom:.35rem;">Products</div>
+        <div class="products" id="products">
+          <div class="chip selected" data-product="tshirt">👕 T-shirt</div>
+          <div class="chip" data-product="poster">🖼️ Poster</div>
+          <div class="chip" data-product="phonecase">📱 Phone Case</div>
+          <div class="chip" data-product="sticker">🛡️ Sticker</div>
+          <div class="chip" data-product="tote">🛍️ Tote</div>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:.6rem;">
+        <div style="font-size:.86rem;margin-bottom:.35rem;">Resolution</div>
+        <div style="display:flex;gap:.4rem;">
+          <span class="res active" data-res="standard">Standard</span>
+          <span class="res" data-res="premium">Premium</span>
+          <span class="res" data-res="ultra">Ultra</span>
+        </div>
+
+      <div class="row" style="margin-top:.6rem;">
+        <div style="font-size:.86rem;margin-bottom:.35rem;">Aspect Ratio</div>
+        <div style="display:flex;gap:.4rem;flex-wrap:wrap;">
+          <span class="ratio active" data-ratio="1:1">1:1</span>
+          <span class="ratio" data-ratio="3:2">3:2</span>
+          <span class="ratio" data-ratio="4:3">4:3</span>
+          <span class="ratio" data-ratio="16:9">16:9</span>
+        </div>
+      </div>
+
+      <div class="row" style="margin-top:.4rem;display:flex;align-items:center;gap:.5rem;">
+        <input type="checkbox" id="preserve-ar" checked />
+        <label for="preserve-ar" style="margin:0;">Preserve Aspect Ratio</label>
+      </div>
+
+      <div class="row" style="margin-top:.4rem;display:flex;align-items:center;gap:.5rem;">
+        <input type="checkbox" id="auto-sync" checked />
+        <label for="auto-sync" style="margin:0;">Synchroniser les paramètres (Produit ↔ Ratio ↔ Résolution)</label>
+      </div>
+
+      <div class="row" style="margin-top:.65rem;display:flex;gap:.5rem;">
+        <button id="rb-generate" class="action">Apply Preset</button>
+        <button id="rb-download" class="action ghost">Download</button>
+      </div>
+    </section>
+
+    <div style="height:3rem;"></div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main>
+    <div class="toolbar">
+      <div class="styles" id="styles">
+        <button class="style-btn active" data-style="organic">Organic</button>
+        <button class="style-btn" data-style="geometric">Geometric</button>
+        <button class="style-btn" data-style="crystalline">Crystalline</button>
+        <button class="style-btn" data-style="fluid">Fluid</button>
+        <button class="style-btn" data-style="cosmic">Cosmic</button>
+        <button class="style-btn" data-style="fractal">Fractal</button>
+      </div>
+      <div class="actions">
+        <button id="generate" class="action primary">Generate</button>
+        <button id="auto" class="action">Auto Mode</button>
+        <button id="png" class="action">Download PNG</button>
+        <button id="svg" class="action ghost">Download SVG</button>
+      </div>
+    </div>
+
+    <div class="canvas-wrap" id="canvas-wrap">
+      <div style="position:relative;">
+        <canvas id="art" role="img" aria-label="Artwork rendering area"></canvas>
+        <div class="loading" id="loading"><div class="spinner"></div></div>
+      </div>
+      <div class="progress"><div class="bar" id="bar"></div></div>
+      <div style="margin-top:.6rem;display:flex;gap:.6rem;align-items:center;">
+        <input id="title" type="text" placeholder="Artwork title (optional)"
+               style="padding:.6rem;border-radius:8px;border:1px solid rgba(58,58,106,.15);background:rgba(20,20,40,.6);color:#e7ebff;flex:1;">
+        <button id="save" class="action ghost">Save to gallery</button>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-create"></div>
+      <div class="tab" id="tab-gallery">
+        <h3 style="margin:.6rem 0;color:#a0b7ff;">Gallery</h3>
+        <div class="grid" id="gallery">
+          <p style="grid-column:1/-1;text-align:center;color:#8a8ea8;">No saved artworks yet.</p>
+        </div>
+      </div>
+      <div class="tab" id="tab-verify">
+        <h3 style="color:#a0b7ff;">Verification</h3>
+        <div style="margin-top:.6rem;display:flex;gap:.6rem;align-items:center;">
+          <input id="hash" type="text" placeholder="Paste hash to verify"
+                 style="flex:1;padding:.6rem;border-radius:8px;border:1px solid rgba(58,58,106,.12);background:rgba(20,20,40,.6);color:#e7ebff;">
+          <button id="check" class="action">Check</button>
+        </div>
+        <div id="verify" style="margin-top:.8rem;background:rgba(26,26,58,.82);padding:1rem;border-radius:10px;">
+          Result will appear here...
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<div class="note" id="note"></div>
+<div class="overlay" id="overlay" aria-hidden="true"></div>
+
+<script>
+/* ==========================================================
+   Algorythmic Art Studio — v4.0 (English, unified SVG+Canvas)
+   ========================================================== */
+document.addEventListener('DOMContentLoaded', () => {
+  /* ---------- DOM refs ---------- */
+  const body = document.body;
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('overlay');
+  const floatBtn = document.getElementById('float-toggle');
+  const floatIcon = document.getElementById('float-icon');
+  const canvas = document.getElementById('art');
+  const ctx = canvas.getContext('2d');
+  const loading = document.getElementById('loading');
+  const bar = document.getElementById('bar');
+  const note = document.getElementById('note');
+  const wrap = document.getElementById('canvas-wrap');
+
+  const btnGenerate = document.getElementById('generate');
+  const btnAuto = document.getElementById('auto');
+  const btnPNG = document.getElementById('png');
+  const btnSVG = document.getElementById('svg');
+  const btnSave = document.getElementById('save');
+
+  const styles = document.querySelectorAll('.style-btn');
+  const gallery = document.getElementById('gallery');
+
+  /* ---------- State ---------- */
+  let autoInterval = null;
+  let current = { svg: null, png: null, params: null };
+  let params = {
+    style: 'organic',
+    complexity: 60,
+    size: 45,
+    density: 70,
+    hue: 220,
+    saturation: 80,
+    contrast: 70,
+    brightness: 60,
+    symmetry: 0,
+    seed: Math.random() * 1000
+  };
+
+  /* ---------- Sidebar toggle (unified behavior) ---------- */
+  const isMobile = () => window.matchMedia('(max-width: 900px)').matches;
+  function openSidebar() {
+    if (isMobile()) {
+      sidebar.classList.add('open'); overlay.classList.add('show');
+    } else {
+      body.classList.remove('sidebar-closed');
     }
-    window.addEventListener('resize', fitCanvas);
-    window.addEventListener('load', fitCanvas);
-  </script>
+    floatBtn.setAttribute('aria-expanded','true'); floatIcon.textContent = '◀';
+  }
+  function closeSidebar() {
+    if (isMobile()) {
+      sidebar.classList.remove('open'); overlay.classList.remove('show');
+    }
+    body.classList.add('sidebar-closed');
+    floatBtn.setAttribute('aria-expanded','false'); floatIcon.textContent = '▶';
+  }
+  function toggleSidebar() {
+    const closed = body.classList.contains('sidebar-closed');
+    if (closed) openSidebar(); else closeSidebar();
+  }
+  // Initial state
+  if (isMobile()) closeSidebar(); else openSidebar();
+
+  floatBtn.addEventListener('click', toggleSidebar);
+  floatBtn.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleSidebar(); }});
+  overlay.addEventListener('click', closeSidebar);
+
+  /* ---------- Helpers ---------- */
+  const show = (msg, type='success') => {
+    note.textContent = msg;
+    note.className = 'note ' + (type === 'error' ? 'error show' : 'show');
+    setTimeout(() => note.classList.remove('show'), 2600);
+  };
+  const progress = p => { bar.style.width = p + '%'; };
+
+  function applyDPR() {
+    const style = getComputedStyle(wrap);
+    const padL = parseFloat(style.paddingLeft||0);
+    const padR = parseFloat(style.paddingRight||0);
+    const availW = wrap.clientWidth - padL - padR;
+
+    // Parse ratio like "16:9" -> 16/9
+    const parts = (currentRatio||'1:1').split(':');
+    const rw = parseFloat(parts[0]) || 1, rh = parseFloat(parts[1]) || 1;
+    const ratio = rw / rh;
+
+    // Height based on width and ratio, clamped to viewport
+    const maxH = Math.min(900, Math.floor(window.innerHeight * 0.62));
+    let desiredH = Math.min(availW / ratio, maxH);
+    desiredH = Math.max(360, desiredH);
+
+    const dprBase = window.devicePixelRatio || 1;
+    const dpr = dprBase * 2; // boost clarity
+
+    canvas.width = Math.floor(availW * dpr);
+    canvas.height = Math.floor(desiredH * dpr);
+    canvas.style.width = availW + 'px';
+    canvas.style.height = desiredH + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+
+  window.addEventListener('resize', () => {
+    applyDPR();
+    if (current.params) generateArtworkWithSVG(false); // redraw with same seed & params, no reseed
+    // Make sidebar consistent
+    if (isMobile()) { closeSidebar(); } else { overlay.classList.remove('show'); sidebar.classList.remove('open'); body.classList.remove('sidebar-closed'); floatIcon.textContent='◀'; }
+  });
+
+  /* ---------- Controls binding ---------- */
+  const qs = id => document.getElementById(id);
+  const sliders = {
+    complexity: qs('complexity'),
+    size: qs('size'),
+    density: qs('density'),
+    hue: qs('hue'),
+    saturation: qs('saturation'),
+    contrast: qs('contrast'),
+    brightness: qs('brightness'),
+    symmetry: qs('symmetry')
+  };
+  const vals = {
+    complexity: qs('complexity-val'),
+    size: qs('size-val'),
+    density: qs('density-val'),
+    hue: qs('hue-val'),
+    saturation: qs('saturation-val'),
+    contrast: qs('contrast-val'),
+    brightness: qs('brightness-val'),
+    symmetry: qs('symmetry-val')
+  };
+  Object.keys(sliders).forEach(k => {
+    sliders[k]?.addEventListener('input', e => {
+      const v = parseInt(e.target.value);
+      params[k] = v;
+      vals[k].textContent = v + (k==='hue' ? '°' : '');
+      clearTimeout(sliders[k]._t);
+      sliders[k]._t = setTimeout(() => generateArtworkWithSVG(), 220);
+    });
+  });
+
+  styles.forEach(btn => {
+    btn.addEventListener('click', () => {
+      styles.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      params.style = btn.dataset.style;
+      generateArtworkWithSVG();
+    });
+  });
+
+  /* ---------- Redbubble Presets ---------- */
+  const PRESETS = {
+    cosmic_harmony: {
+      name: "Cosmic Harmony",
+      params: { style: 'cosmic', complexity: 75, size: 45, density: 70, hue: 240, saturation: 85, contrast: 80, brightness: 65, symmetry: 0, seed: 123 }
+    },
+    ancestral_geometry: {
+      name: "Ancestral Geometry",
+      params: { style: 'geometric', complexity: 60, size: 55, density: 65, hue: 45, saturation: 80, contrast: 75, brightness: 70, symmetry: 6, seed: 456 }
+    },
+    primordial_fluidity: {
+      name: "Primordial Fluidity",
+      params: { style: 'fluid', complexity: 80, size: 40, density: 75, hue: 180, saturation: 75, contrast: 70, brightness: 60, symmetry: 0, seed: 789 }
+    }
+  };
+  let currentPreset = 'cosmic_harmony';
+  const presetList = document.getElementById('preset-list');
+  function initPresets() {
+    presetList.innerHTML = '';
+    Object.keys(PRESETS).forEach(key => {
+      const p = PRESETS[key];
+      const el = document.createElement('div');
+      el.className = 'preset' + (key===currentPreset ? ' active' : ''); el.dataset.preset = key;
+      el.innerHTML = `<div style="font-size:1.15rem">🎨</div>
+                      <div style="flex:1">
+                        <div style="font-weight:700;color:#cfe1ff;">${p.name}</div>
+                        <div style="font-size:.82rem;color:#d6d9ff;opacity:.9;">${p.params.style}, hue ${p.params.hue}</div>
+                      </div>`;
+      el.addEventListener('click', () => {
+        document.querySelectorAll('.preset').forEach(c => c.classList.remove('active'));
+        el.classList.add('active');
+        currentPreset = key;
+        Object.assign(params, p.params);
+        updateUIFromParams();
+        generateArtworkWithSVG();
+      });
+      presetList.appendChild(el);
+    });
+  }
+
+  function updateUIFromParams() {
+    Object.keys(sliders).forEach(k => { if (sliders[k]) { sliders[k].value = params[k]; vals[k].textContent = params[k] + (k==='hue'?'°':''); } });
+    styles.forEach(b => b.classList.toggle('active', b.dataset.style === params.style));
+  }
+
+  const products = document.getElementById('products');
+  let currentProduct = 'tshirt';
+  
+products.querySelectorAll('.chip').forEach(ch => ch.addEventListener('click', () => {
+  products.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+  ch.classList.add('selected'); 
+  currentProduct = ch.dataset.product;
+
+  if (typeof autoSync !== 'undefined' && autoSync) {
+    const cfg = productDefaultSettings[currentProduct] || { ratio:'1:1', res:'standard', preset: currentPreset };
+    currentRatio = cfg.ratio;
+    currentRes   = cfg.res;
+    currentPreset = cfg.preset;
+
+    // UI highlights
+    highlightRatio(currentRatio);
+    highlightRes(currentRes);
+    highlightPreset(currentPreset);
+
+    // Apply preset params
+    const p = PRESETS[currentPreset];
+    if (p) { Object.assign(params, p.params); updateUIFromParams(); }
+
+    // Recompute canvas + redraw without reseeding
+    applyDPR();
+    generateArtworkWithSVG(false);
+
+    show(`🧵 ${currentProduct.toUpperCase()} • ${currentRatio} • ${currentRes} • ${PRESETS[currentPreset]?.name||currentPreset}`);
+  }
+}));
+
+  let currentRes = 'standard';
+
+  // Aspect Ratio binding
+  document.querySelectorAll('.ratio').forEach(r => r.addEventListener('click', () => {
+    document.querySelectorAll('.ratio').forEach(a => a.classList.remove('active'));
+    r.classList.add('active'); 
+    currentRatio = r.dataset.ratio;
+    applyDPR();               // re-calc canvas size using selected ratio
+    if (typeof autoSync !== 'undefined' && autoSync) { generateArtworkWithSVG(false); show(`📐 Ratio ${currentRatio} appliqué`); } else { if (current.params) generateArtworkWithSVG(false); }
+  }));
+  // Preserve AR checkbox
+  const preserveChk = document.getElementById('preserve-ar');
+  preserveChk.addEventListener('change', ()=>{ preserveAR = preserveChk.checked; });
+
+  // === Desktop-first sync: default settings per product
+  const productDefaultSettings = {
+    sticker:   { ratio: '1:1', res: 'ultra',   preset: 'primordial_fluidity' },
+    tshirt:    { ratio: '1:1', res: 'premium', preset: 'primordial_fluidity' },
+    tote:      { ratio: '1:1', res: 'premium', preset: 'ancestral_geometry' },
+    poster:    { ratio: '3:2', res: 'ultra',   preset: 'cosmic_harmony' },
+    phonecase: { ratio: '4:3', res: 'standard',preset: 'cosmic_harmony' }
+  };
+
+  function highlightRatio(ratio) {
+    document.querySelectorAll('.ratio').forEach(r => r.classList.toggle('active', r.dataset.ratio === ratio));
+  }
+  function highlightRes(res) {
+    document.querySelectorAll('.res').forEach(r => r.classList.toggle('active', r.dataset.res === res));
+  }
+  function highlightPreset(presetKey) {
+    document.querySelectorAll('.preset').forEach(p => p.classList.toggle('active', p.dataset.preset === presetKey));
+  }
+
+
+  // Synchronisation automatique des paramètres
+  let autoSync = true;
+  const autoSyncBox = document.getElementById('auto-sync');
+  autoSyncBox.addEventListener('change', () => {
+    autoSync = autoSyncBox.checked;
+    show(autoSync ? '🔁 Synchronisation automatique activée' : '⚙️ Mode manuel activé');
+  });
+
+  const productDefaultRatios = {
+    sticker: '1:1',
+    tshirt: '1:1',
+    tote: '1:1',
+    poster: '3:2',
+    phonecase: '4:3'
+  };
+
+  function highlightRatio(ratio) {
+    document.querySelectorAll('.ratio').forEach(r => {
+      r.classList.toggle('active', r.dataset.ratio === ratio);
+    });
+  }
+
+  // Observer les changements de produit
+  document.querySelectorAll('.product').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (autoSync) {
+        currentRatio = productDefaultRatios[currentProduct] || '1:1';
+        highlightRatio(currentRatio);
+        applyDPR();
+        generateArtworkWithSVG(false);
+        show(`🎨 Produit ${currentProduct} → Ratio ${currentRatio}`);
+      }
+    });
+  });
+
+  // Synchronisation résolution ↔ canvas
+  document.querySelectorAll('.res').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (autoSync) {
+        applyDPR();
+        generateArtworkWithSVG(false);
+        show(`🧩 Résolution ${currentRes} mise à jour`);
+      }
+    });
+  });
+
+  // Synchronisation ratio ↔ génération
+  document.querySelectorAll('.ratio').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (autoSync) {
+        applyDPR();
+        generateArtworkWithSVG(false);
+        show(`📐 Ratio ${currentRatio} appliqué`);
+      }
+    });
+  });
+
+
+  document.querySelectorAll('.res').forEach(r => r.addEventListener('click', () => {
+    document.querySelectorAll('.res').forEach(a => a.classList.remove('active'));
+    r.classList.add('active'); currentRes = r.dataset.res;
+    if (typeof autoSync !== 'undefined' && autoSync) { applyDPR(); generateArtworkWithSVG(false); show(`🧩 Résolution ${currentRes} appliquée`); }
+  }));
+
+  const PRODUCT_SIZE = {
+    tshirt: { w: 6000, h: 6000 }, 
+    poster: { w: 7000, h: 4667 }, 
+    phonecase: { w: 3000, h: 3000 },
+    sticker: { w: 2400, h: 2400 }, 
+    tote: { w: 6000, h: 6000 }
+  };
+  let currentRatio = '1:1';
+  let preserveAR = true;
+
+  document.getElementById('rb-generate').addEventListener('click', () => {
+    const p = PRESETS[currentPreset]; if (!p) return;
+    Object.assign(params, p.params); updateUIFromParams();
+    if (typeof autoSync !== 'undefined' && autoSync) generateArtworkWithSVG(false); else generateArtworkWithSVG();
+  });
+
+    document.getElementById('rb-download').addEventListener('click', () => {
+    const cfg = PRODUCT_SIZE[currentProduct] || { w: 3000, h: 3000 };
+    const scale = currentRes === 'premium' ? 1.5 : (currentRes === 'ultra' ? 2 : 1);
+    const temp = document.createElement('canvas');
+    temp.width = Math.floor(cfg.w * scale);
+    temp.height = Math.floor(cfg.h * scale);
+    const tctx = temp.getContext('2d');
+
+    // Déterminer si le fond doit être transparent selon le produit
+    const transparentProducts = ['sticker', 'tshirt', 'tote'];
+    const useTransparent = transparentProducts.includes(currentProduct);
+
+    if (!useTransparent) {
+      // Fond sombre pour posters et phonecases
+      tctx.fillStyle = '#050510';
+      tctx.fillRect(0,0,temp.width,temp.height);
+    } else {
+      // Fond totalement transparent
+      tctx.clearRect(0, 0, temp.width, temp.height);
+    }
+
+    if (preserveAR) {
+      // Ajustement proportionnel sans distorsion
+      const s = Math.min(temp.width / canvas.width, temp.height / canvas.height);
+      const dw = Math.floor(canvas.width * s);
+      const dh = Math.floor(canvas.height * s);
+      const dx = Math.floor((temp.width - dw) / 2);
+      const dy = Math.floor((temp.height - dh) / 2);
+      tctx.imageSmoothingQuality = 'high';
+      tctx.drawImage(canvas, dx, dy, dw, dh);
+    } else {
+      // Étirement complet
+      tctx.drawImage(canvas, 0, 0, temp.width, temp.height);
+    }
+
+    const a = document.createElement('a');
+    a.download = `Ange_Niandre_${(PRESETS[currentPreset]?.name||'Design')}_${currentProduct}.png`;
+    a.href = temp.toDataURL('image/png', 1.0);
+    a.click();
+
+    if (useTransparent) {
+      show('✨ Export transparent optimisé pour Redbubble (stickers & textiles)');
+    } else {
+      show('🖼️ Export fond sombre pour produits visuels (poster, phonecase)');
+    }
+  });
+
+  /* ---------- SVG infra ---------- */
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const svgRoot = document.createElementNS(svgNS, 'svg');
+  svgRoot.setAttribute('xmlns', svgNS);
+  svgRoot.setAttribute('style', 'display:none');
+  document.body.appendChild(svgRoot);
+
+  function uid(prefix='g'){ return prefix + Math.random().toString(36).slice(2,9); }
+
+  function addRadialGradient(id, cx, cy, r, stops) {
+    let defs = svgRoot.querySelector('defs');
+    if (!defs) { defs = document.createElementNS(svgNS, 'defs'); svgRoot.appendChild(defs); }
+    const g = document.createElementNS(svgNS, 'radialGradient');
+    g.setAttribute('id', id);
+    g.setAttribute('cx', cx); g.setAttribute('cy', cy); g.setAttribute('r', r);
+    stops.forEach(s => {
+      const st = document.createElementNS(svgNS, 'stop');
+      st.setAttribute('offset', s.offset);
+      st.setAttribute('stop-color', s.color);
+      st.setAttribute('stop-opacity', s.opacity);
+      g.appendChild(st);
+    });
+    defs.appendChild(g);
+    return `url(#${id})`;
+  }
+  function addLinearGradient(id, x1,y1,x2,y2, stops) {
+    let defs = svgRoot.querySelector('defs');
+    if (!defs) { defs = document.createElementNS(svgNS, 'defs'); svgRoot.appendChild(defs); }
+    const g = document.createElementNS(svgNS, 'linearGradient');
+    g.setAttribute('id', id);
+    g.setAttribute('x1', x1); g.setAttribute('y1', y1);
+    g.setAttribute('x2', x2); g.setAttribute('y2', y2);
+    stops.forEach(s => {
+      const st = document.createElementNS(svgNS, 'stop');
+      st.setAttribute('offset', s.offset);
+      st.setAttribute('stop-color', s.color);
+      st.setAttribute('stop-opacity', s.opacity);
+      g.appendChild(st);
+    });
+    defs.appendChild(g);
+    return `url(#${id})`;
+  }
+
+  /* ---------- Noise (light) ---------- */
+  function noise(x, y) {
+    const X = Math.floor(x), Y = Math.floor(y); x -= X; y -= Y;
+    const n = X + Y * 57; const val = Math.sin(n * 137.758) * 43758.5453;
+    return val - Math.floor(val);
+  }
+  function inoise(x,y,oct=4,pers=0.5) {
+    let v=0,a=1,f=1,max=0;
+    for (let i=0;i<oct;i++){ v += noise(x*f,y*f)*a; max+=a; a*=pers; f*=2; }
+    return v/max;
+  }
+
+  /* ---------- Canvas Shape Drawers ---------- */
+  function drawOrganic(ctx,x,y,size,h,s,b,o) {
+    const pts = []; const n = 8 + Math.floor(inoise(x,y)*8);
+    for (let i=0;i<n;i++){
+      const ang = i/n * Math.PI*2;
+      const radius = size*(0.6+0.4*inoise(x+i*0.1,y));
+      pts.push([x+Math.cos(ang)*radius, y+Math.sin(ang)*radius]);
+    }
+    ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+    for (let i=1;i<pts.length;i++) ctx.lineTo(pts[i][0], pts[i][1]);
+    ctx.closePath();
+    const grad = ctx.createRadialGradient(x,y,0,x,y,size);
+    grad.addColorStop(0, `hsla(${h},${s}%,${b+20}%,${o})`);
+    grad.addColorStop(1, `hsla(${h},${s}%,${b}%,${o*0.6})`);
+    ctx.fillStyle = grad; ctx.fill();
+    ctx.strokeStyle = `hsla(${(h+30)%360},${s}%,${b+10}%,${o*0.3})`; ctx.lineWidth = Math.max(1,size*0.03); ctx.stroke();
+  }
+  function drawGeometric(ctx,x,y,size,h,s,b,o){
+    const n = 3 + Math.floor(inoise(x,y)*5);
+    ctx.beginPath();
+    for (let i=0;i<n;i++){
+      const ang = i/n*Math.PI*2;
+      const r = size*(0.8+0.2*inoise(x+i*0.1,y));
+      const px=x+Math.cos(ang)*r, py=y+Math.sin(ang)*r;
+      if (!i) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+    }
+    ctx.closePath();
+    ctx.fillStyle = `hsla(${h},${s}%,${b}%,${o})`; ctx.fill();
+    ctx.strokeStyle = `hsla(${(h+60)%360},${s}%,${b+20}%,${o*0.8})`; ctx.lineWidth=Math.max(1,size*0.05); ctx.stroke();
+  }
+  function drawCrystalline(ctx,x,y,size,h,s,b,o){
+    const shards=3+Math.floor(inoise(x,y)*6); const base=inoise(x,y)*Math.PI*2;
+    for(let i=0;i<shards;i++){
+      const ang=base+(i/shards)*Math.PI*2; const L=size*(0.5+0.5*inoise(x+i*0.1,y));
+      const ex=x+Math.cos(ang)*L, ey=y+Math.sin(ang)*L;
+      ctx.beginPath(); ctx.moveTo(x,y);
+      const a1=ang+Math.PI/8, a2=ang-Math.PI/8, L2=L*0.3;
+      const s1x=ex+Math.cos(a1)*L2, s1y=ey+Math.sin(a1)*L2;
+      const s2x=ex+Math.cos(a2)*L2, s2y=ey+Math.sin(a2)*L2;
+      ctx.lineTo(ex,ey); ctx.lineTo(s1x,s1y); ctx.lineTo(s2x,s2y); ctx.closePath();
+      const g=ctx.createLinearGradient(x,y,ex,ey);
+      g.addColorStop(0, `hsla(${h},${s}%,${b+20}%,${o*0.8})`);
+      g.addColorStop(1, `hsla(${(h+40)%360},${s}%,${b}%,${o*0.4})`);
+      ctx.fillStyle=g; ctx.fill();
+    }
+  }
+  function drawFluid(ctx,x,y,size,h,s,b,o){
+    const waves = 2+Math.floor(inoise(x,y)*3), base=size*(0.7+0.3*inoise(x,y));
+    for(let i=0;i<waves;i++){
+      const w = base*(0.5+0.5*inoise(x+i*0.2,y)); const hh=(h+i*15)%360;
+      ctx.beginPath(); const N=16;
+      for(let j=0;j<=N;j++){
+        const ang=j/N*Math.PI*2; const nf=0.1+0.2*inoise(x+j*0.1,y+i*0.1);
+        const r=w*(0.8+nf*Math.sin(ang*3)); const px=x+Math.cos(ang)*r, py=y+Math.sin(ang)*r;
+        if(!j) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.closePath();
+      const g=ctx.createRadialGradient(x,y,0,x,y,w);
+      g.addColorStop(0, `hsla(${hh},${s}%,${b+15}%,${o*0.7})`);
+      g.addColorStop(1, `hsla(${hh},${s}%,${b}%,${o*0.3})`);
+      ctx.fillStyle=g; ctx.fill();
+    }
+  }
+  function drawCosmic(ctx,x,y,size,h,s,b,o){
+    const n=3+Math.floor(inoise(x,y)*5);
+    for(let i=0;i<n;i++){
+      const sz=size*(0.3+0.7*inoise(x+i*0.1,y)), hh=(h+i*25)%360;
+      const ex=x+(inoise(x,y+i)*2-1)*size*0.5, ey=y+(inoise(x+i,y)*2-1)*size*0.5;
+      const spikes=5+Math.floor(inoise(x,y+i)*4); const R=sz, r=sz*0.4;
+      ctx.beginPath();
+      for(let j=0;j<spikes*2;j++){
+        const rad=j%2===0 ? R : r; const ang=j/(spikes*2)*Math.PI*2;
+        const px=ex+Math.cos(ang)*rad, py=ey+Math.sin(ang)*rad;
+        if(!j) ctx.moveTo(px,py); else ctx.lineTo(px,py);
+      }
+      ctx.closePath(); ctx.fillStyle=`hsla(${hh},${s}%,${b+30}%,${o})`; ctx.fill();
+    }
+  }
+  function drawFractal(ctx,x,y,size,h,s,b,o,depth=0,max=3){
+    if(depth>max || size<5) return;
+    const branches=3+Math.floor(inoise(x+depth,y+depth)*3);
+    const step=(Math.PI*2)/branches; const base=inoise(x,y)*Math.PI*2;
+    ctx.beginPath(); ctx.arc(x,y,size*0.3,0,Math.PI*2); ctx.fillStyle=`hsla(${h},${s}%,${b}%,${o})`; ctx.fill();
+    for(let i=0;i<branches;i++){
+      const ang=base+i*step; const L=size*(0.6+0.4*inoise(x+i,y+depth));
+      const ex=x+Math.cos(ang)*L, ey=y+Math.sin(ang)*L;
+      ctx.beginPath(); ctx.moveTo(x,y); ctx.lineTo(ex,ey);
+      ctx.strokeStyle=`hsla(${(h+i*20)%360},${s}%,${b}%,${o*0.8})`; ctx.lineWidth=Math.max(1,size*0.1); ctx.stroke();
+      drawFractal(ctx,ex,ey,size*0.6,(h+i*15+depth*10)%360,s,b,o*0.8,depth+1,max);
+    }
+  }
+
+  /* ---------- SVG Shape Equivalents (visually faithful) ---------- */
+  function svgOrganic(x,y,size,h,s,b,o) {
+    const n=8+Math.floor(inoise(x,y)*8), pts=[];
+    for(let i=0;i<n;i++){ const ang=i/n*Math.PI*2; const r=size*(0.6+0.4*inoise(x+i*0.1,y)); pts.push([x+Math.cos(ang)*r,y+Math.sin(ang)*r]); }
+    const d = 'M'+pts.map((p,i)=> (i? 'L':'')+p[0].toFixed(2)+','+p[1].toFixed(2)).join(' ')+' Z';
+    const gid = uid('rg');
+    const fill = addRadialGradient(gid, x, y, size, [
+      {offset:'0%', color:`hsl(${h} ${s}% ${b+20}%)`, opacity:o},
+      {offset:'100%', color:`hsl(${h} ${s}% ${b}%)`, opacity:o*0.6}
+    ]);
+    const path=document.createElementNS(svgNS,'path');
+    path.setAttribute('d', d);
+    path.setAttribute('fill', fill);
+    path.setAttribute('stroke', `hsla(${(h+30)%360},${s}%,${b+10}%,${o*0.3})`);
+    path.setAttribute('stroke-width', Math.max(1,size*0.03));
+    svgRoot.appendChild(path);
+  }
+  function svgGeometric(x,y,size,h,s,b,o){
+    const n=3+Math.floor(inoise(x,y)*5); let d='';
+    for(let i=0;i<=n;i++){ const ang=i/n*Math.PI*2; const r=size*(0.8+0.2*inoise(x+i*0.1,y));
+      const px=x+Math.cos(ang)*r, py=y+Math.sin(ang)*r; d+=(i?'L':'M')+px.toFixed(2)+','+py.toFixed(2)+' '; }
+    const path=document.createElementNS(svgNS,'path');
+    path.setAttribute('d', d+'Z');
+    path.setAttribute('fill', `hsla(${h},${s}%,${b}%,${o})`);
+    path.setAttribute('stroke', `hsla(${(h+60)%360},${s}%,${b+20}%,${o*0.8})`);
+    path.setAttribute('stroke-width', Math.max(1,size*0.05));
+    svgRoot.appendChild(path);
+  }
+  function svgCrystalline(x,y,size,h,s,b,o){
+    const shards=3+Math.floor(inoise(x,y)*6), base=inoise(x,y)*Math.PI*2;
+    for(let i=0;i<shards;i++){
+      const ang=base+(i/shards)*Math.PI*2; const L=size*(0.5+0.5*inoise(x+i*0.1,y));
+      const ex=x+Math.cos(ang)*L, ey=y+Math.sin(ang)*L;
+      const a1=ang+Math.PI/8, a2=ang-Math.PI/8, L2=L*0.3;
+      const s1x=ex+Math.cos(a1)*L2, s1y=ey+Math.sin(a1)*L2;
+      const s2x=ex+Math.cos(a2)*L2, s2y=ey+Math.sin(a2)*L2;
+      const d=`M ${x},${y} L ${ex},${ey} L ${s1x},${s1y} L ${s2x},${s2y} Z`;
+      const gid=uid('lg');
+      const fill=addLinearGradient(gid, x, y, ex, ey, [
+        {offset:'0%', color:`hsl(${h} ${s}% ${b+20}%)`, opacity:o*0.8},
+        {offset:'100%', color:`hsl(${(h+40)%360} ${s}% ${b}%)`, opacity:o*0.4}
+      ]);
+      const path=document.createElementNS(svgNS,'path');
+      path.setAttribute('d', d); path.setAttribute('fill', fill);
+      svgRoot.appendChild(path);
+    }
+  }
+  function svgFluid(x,y,size,h,s,b,o){
+    const waves=2+Math.floor(inoise(x,y)*3), base=size*(0.7+0.3*inoise(x,y));
+    for(let i=0;i<waves;i++){
+      const w=base*(0.5+0.5*inoise(x+i*0.2,y)); const hh=(h+i*15)%360; const N=16;
+      let d='';
+      for(let j=0;j<=N;j++){
+        const ang=j/N*Math.PI*2; const nf=0.1+0.2*inoise(x+j*0.1,y+i*0.1);
+        const r=w*(0.8+nf*Math.sin(ang*3)); const px=x+Math.cos(ang)*r, py=y+Math.sin(ang)*r;
+        d+=(j?'L':'M')+px.toFixed(2)+','+py.toFixed(2)+' ';
+      }
+      const gid=uid('rg');
+      const fill=addRadialGradient(gid, x, y, w, [
+        {offset:'0%', color:`hsl(${hh} ${s}% ${b+15}%)`, opacity:o*0.7},
+        {offset:'100%', color:`hsl(${hh} ${s}% ${b}%)`, opacity:o*0.3}
+      ]);
+      const path=document.createElementNS(svgNS,'path');
+      path.setAttribute('d', d+'Z'); path.setAttribute('fill', fill);
+      svgRoot.appendChild(path);
+    }
+  }
+  function svgCosmic(x,y,size,h,s,b,o){
+    const n=3+Math.floor(inoise(x,y)*5);
+    for(let i=0;i<n;i++){
+      const sz=size*(0.3+0.7*inoise(x+i*0.1,y)), hh=(h+i*25)%360;
+      const ex=x+(inoise(x,y+i)*2-1)*size*0.5, ey=y+(inoise(x+i,y)*2-1)*size*0.5;
+      const spikes=5+Math.floor(inoise(x,y+i)*4); const R=sz, r=sz*0.4;
+      let d=''; for(let j=0;j<spikes*2;j++){ const rad=j%2===0?R:r; const ang=j/(spikes*2)*Math.PI*2;
+        const px=ex+Math.cos(ang)*rad, py=ey+Math.sin(ang)*rad; d+=(j?'L':'M')+px.toFixed(2)+','+py.toFixed(2)+' '; }
+      const path=document.createElementNS(svgNS,'path');
+      path.setAttribute('d', d+'Z');
+      path.setAttribute('fill', `hsla(${hh},${s}%,${b+30}%,${o})`);
+      svgRoot.appendChild(path);
+    }
+  }
+  function svgFractal(x,y,size,h,s,b,o,depth=0,max=3){
+    if(depth>max||size<5) return;
+    const branches=3+Math.floor(inoise(x+depth,y+depth)*3);
+    const step=(Math.PI*2)/branches; const base=inoise(x,y)*Math.PI*2;
+    const c=document.createElementNS(svgNS,'circle');
+    c.setAttribute('cx', x); c.setAttribute('cy', y); c.setAttribute('r', size*0.3);
+    c.setAttribute('fill', `hsla(${h},${s}%,${b}%,${o})`);
+    svgRoot.appendChild(c);
+    for(let i=0;i<branches;i++){
+      const ang=base+i*step; const L=size*(0.6+0.4*inoise(x+i,y+depth));
+      const ex=x+Math.cos(ang)*L, ey=y+Math.sin(ang)*L;
+      const line=document.createElementNS(svgNS,'line');
+      line.setAttribute('x1', x); line.setAttribute('y1', y);
+      line.setAttribute('x2', ex); line.setAttribute('y2', ey);
+      line.setAttribute('stroke', `hsla(${(h+i*20)%360},${s}%,${b}%,${o*0.8})`);
+      line.setAttribute('stroke-width', Math.max(1,size*0.1));
+      svgRoot.appendChild(line);
+      svgFractal(ex,ey,size*0.6,(h+i*15+depth*10)%360,s,b,o*0.8,depth+1,max);
+    }
+  }
+// === Color Badge and Palette Picker (Full Chromatic Wheel) — FIXED ===
+// On part du slider #hue, puis on remonte à la carte .card "Color Palette"
+const hueInput = document.getElementById('hue');
+const colorCard = hueInput ? hueInput.closest('.card') : null;
+const colorHeader = colorCard ? colorCard.querySelector('h3') : null;
+
+// Sécurités : si on ne trouve pas la carte, on n'exécute pas la suite
+if (colorCard && colorHeader) {
+  // Badge couleur
+  const colorBadge = document.createElement('div');
+  colorBadge.id = 'color-badge';
+  colorBadge.style.cssText = `
+    position:absolute; top:-30px; right:0;
+    width:24px; height:24px; border-radius:50%;
+    border:2px solid #fff; box-shadow:0 2px 6px rgba(0,0,0,0.3);
+  `;
+  // S'assure que le header peut positionner un enfant en absolu
+  colorHeader.style.position = 'relative';
+  colorHeader.appendChild(colorBadge);
+
+  // Palette picker (au-dessus du premier .row de la carte)
+  const palettePicker = document.createElement('div');
+  palettePicker.id = 'palette-picker';
+  palettePicker.style.cssText = 'display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;';
+  const firstRow = colorCard.querySelector('.row');
+  colorCard.insertBefore(palettePicker, firstRow);
+
+  // 9 palettes couvrant l’anneau HSL
+  const palettes = [
+    { name: 'Crimson Dawn', h: 0,   s: 85, b: 55 },
+    { name: 'Lava Soul',    h: 12,  s: 80, b: 55 },
+    { name: 'Solar Drift',  h: 45,  s: 90, b: 65 },
+    { name: 'Lemon Spark',  h: 75,  s: 90, b: 65 },
+    { name: 'Verdant Pulse',h: 110, s: 80, b: 55 },
+    { name: 'Aqua Dream',   h: 190, s: 90, b: 60 },
+    { name: 'Royal Void',   h: 255, s: 70, b: 55 },
+    { name: 'Violet Abyss', h: 285, s: 70, b: 50 },
+    { name: 'Aurora Bloom', h: 320, s: 75, b: 65 }
+  ];
+
+  palettes.forEach(p => {
+    const c = document.createElement('div');
+    c.className = 'palette-dot';
+    Object.assign(c.style, {
+      width:'24px',height:'24px',borderRadius:'50%',
+      border:'2px solid #fff',
+      boxShadow:'0 2px 6px rgba(0,0,0,0.3)',
+      cursor:'pointer',transition:'transform .2s ease',
+      background:`hsl(${p.h},${p.s}%,${p.b}%)`
+    });
+    c.title = p.name;
+    c.addEventListener('mouseenter',()=>c.style.transform='scale(1.2)');
+    c.addEventListener('mouseleave',()=>c.style.transform='scale(1)');
+    c.addEventListener('click',()=>{
+      // Met à jour sliders
+      document.getElementById('hue').value = p.h;
+      document.getElementById('saturation').value = p.s;
+      document.getElementById('brightness').value = p.b;
+
+      // Met à jour aussi l’état global des paramètres
+      params.hue = p.h;
+      params.saturation = p.s;
+      params.brightness = p.b;
+
+      updateUIFromParams(); // synchronise les labels numériques
+      updateColorBadge();
+
+      // Gestion visuelle de la palette active
+      document.querySelectorAll('.palette-dot').forEach(dot=>dot.classList.remove('active'));
+      c.classList.add('active');
+
+      // Redessine immédiatement sans reseed
+      generateArtworkWithSVG(false);
+    });
+    palettePicker.appendChild(c);
+  });
+
+  function updateColorBadge() {
+    const h = parseInt(document.getElementById('hue').value,10);
+    const s = parseInt(document.getElementById('saturation').value,10);
+    const b = parseInt(document.getElementById('brightness').value,10);
+    colorBadge.style.background = `hsl(${h},${s}%,${b}%)`;
+  }
+  document.querySelectorAll('#hue,#saturation,#brightness')
+    .forEach(sl => sl.addEventListener('input', updateColorBadge));
+  updateColorBadge();
+}
+
+
+  /* ---------- Unified Generator (Canvas + SVG) ---------- */
+  async function generateArtworkWithSVG(reseed=true) {
+    loading.classList.add('active'); progress(0);
+    if (reseed) params.seed = Math.random() * 1000;
+
+    svgRoot.innerHTML = ''; // reset
+    applyDPR();
+    const width = canvas.width / (window.devicePixelRatio||1);
+    const height = canvas.height / (window.devicePixelRatio||1);
+
+    // Background
+    ctx.fillStyle = '#050510'; ctx.fillRect(0,0,width,height);
+    const bg = document.createElementNS(svgNS,'rect');
+    bg.setAttribute('x',0); bg.setAttribute('y',0); bg.setAttribute('width', width); bg.setAttribute('height', height);
+    bg.setAttribute('fill','#050510'); svgRoot.appendChild(bg);
+    svgRoot.setAttribute('width', width); svgRoot.setAttribute('height', height);
+    svgRoot.setAttribute('viewBox', `0 0 ${width} ${height}`);
+
+    const elementSize = (params.size/100) * Math.min(width,height) * 0.3;
+    const density = Math.floor((params.density/100) * (120 + Math.sqrt(width*height)/20)) + 30;
+    const baseHue = params.hue, sat = params.saturation, bri = params.brightness;
+
+    // Deterministic PRNG for parity Canvas/SVG positions
+    let seed = Math.floor(params.seed*1e6) % 2147483647; if(seed<=0) seed+=2147483646;
+    function rand(){ seed = seed*16807 % 2147483647; return (seed-1)/2147483646; }
+
+    for (let i=0;i<density;i++){
+      const x = width * (0.1 + 0.8 * rand());
+      const y = height * (0.1 + 0.8 * rand());
+      const size = elementSize * (0.4 + 0.6 * rand());
+      const hue = (baseHue + (rand()*60 - 30) + 360) % 360;
+      const op = 0.5 + rand() * 0.4;
+
+      // Canvas
+      switch(params.style){
+        case 'organic':     drawOrganic(ctx,x,y,size,hue,sat,bri,op); break;
+        case 'geometric':   drawGeometric(ctx,x,y,size,hue,sat,bri,op); break;
+        case 'crystalline': drawCrystalline(ctx,x,y,size,hue,sat,bri,op); break;
+        case 'fluid':       drawFluid(ctx,x,y,size,hue,sat,bri,op); break;
+        case 'cosmic':      drawCosmic(ctx,x,y,size,hue,sat,bri,op); break;
+        case 'fractal':     drawFractal(ctx,x,y,size,hue,sat,bri,op); break;
+        default:            drawOrganic(ctx,x,y,size,hue,sat,bri,op); break;
+      }
+
+      // SVG (visually faithful counterpart)
+      switch(params.style){
+        case 'organic':     svgOrganic(x,y,size,hue,sat,bri,op); break;
+        case 'geometric':   svgGeometric(x,y,size,hue,sat,bri,op); break;
+        case 'crystalline': svgCrystalline(x,y,size,hue,sat,bri,op); break;
+        case 'fluid':       svgFluid(x,y,size,hue,sat,bri,op); break;
+        case 'cosmic':      svgCosmic(x,y,size,hue,sat,bri,op); break;
+        case 'fractal':     svgFractal(x,y,size,hue,sat,bri,op); break;
+        default:            svgOrganic(x,y,size,hue,sat,bri,op); break;
+      }
+
+      if (i % 10 === 0) {
+        progress((i/density)*100);
+        await new Promise(r => setTimeout(r, 6));
+      }
+    }
+
+    current = {
+      params: {...params},
+      png: canvas.toDataURL('image/png', 1.0),
+      svg: new XMLSerializer().serializeToString(svgRoot)
+    };
+
+    loading.classList.remove('active'); progress(100);
+    setTimeout(()=>progress(0), 650);
+    show('🎨 Artwork generated (Canvas + SVG)');
+  }
+
+  /* ---------- Buttons ---------- */
+  btnGenerate.addEventListener('click', () => generateArtworkWithSVG(true));
+  btnAuto.addEventListener('click', () => {
+    if (autoInterval) {
+      clearInterval(autoInterval); autoInterval = null; btnAuto.textContent = 'Auto Mode'; show('Auto mode disabled');
+    } else {
+      btnAuto.textContent = 'Stop Auto';
+      autoInterval = setInterval(() => {
+        params.seed = Math.random()*1000;
+        // rotate some styles for inspiration
+        const list = ['organic','geometric','cosmic','fluid'];
+        params.style = list[Math.floor(Math.random()*list.length)];
+        styles.forEach(b => b.classList.toggle('active', b.dataset.style===params.style));
+        generateArtworkWithSVG(false);
+      }, 4500);
+      show('Auto mode enabled');
+    }
+  });
+  btnPNG.addEventListener('click', () => {
+    const title = (document.getElementById('title').value || 'AngeArtwork').replace(/\s+/g,'_');
+    const a = document.createElement('a'); a.download = title + '.png'; a.href = current.png || canvas.toDataURL('image/png',1.0); a.click();
+    show(`PNG "${title}" downloaded`);
+  });
+  btnSVG.addEventListener('click', () => {
+    if (!current.svg) { show('No SVG generated!', 'error'); return; }
+    const title = (document.getElementById('title').value || 'AngeArtwork').replace(/\s+/g,'_');
+    const blob = new Blob([current.svg], { type: 'image/svg+xml;charset=utf-8' });
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = title + '.svg'; a.click();
+    show(`SVG "${title}" downloaded`);
+  });
+  btnSave.addEventListener('click', () => {
+    if (!current.png) { show('Generate something first', 'error'); return; }
+    const t = document.createElement('div');
+    t.style.backgroundImage = `url(${current.png})`;
+    t.style.backgroundSize = 'cover';
+    t.style.height = '140px'; t.style.borderRadius='8px'; t.style.border='1px solid rgba(74,74,138,.12)';
+    if (gallery.firstElementChild && gallery.firstElementChild.tagName === 'P') gallery.innerHTML = '';
+    gallery.appendChild(t);
+    show('Artwork saved to gallery');
+  });
+
+  // Verify mock
+  document.getElementById('check').addEventListener('click', ()=>{
+    const v = document.getElementById('verify');
+    const h = (document.getElementById('hash').value||'').trim();
+    v.textContent = h ? `Hash "${h}" not found (local simulation)` : 'Please paste a hash.';
+  });
+
+  /* ---------- Init ---------- */
+  function init() { initPresets(); updateUIFromParams(); applyDPR(); generateArtworkWithSVG(true); }
+  init();
+});
+</script>
 </body>
 </html>
