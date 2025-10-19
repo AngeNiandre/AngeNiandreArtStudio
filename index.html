@@ -198,13 +198,17 @@
     background-size: 20px 20px;
     background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
   }
-@media (min-width: 1024px){
-  #sidebar{ position: sticky; top: 0; height: calc(100vh - 68px); overflow-y: auto; }
-  .app{ grid-template-columns: 320px 1fr; }
+.app{ grid-template-columns: 340px 1fr; }
 }
-@media (min-width: 1280px){
-  .app{ grid-template-columns: 340px 1fr; }
-}
+  /* ===== Footer ===== */
+    footer {
+      text-align: center;
+      font-size: 0.85rem;
+      color: #a5a8cc;
+      padding: 0.6rem;
+      border-top: 1px solid rgba(58,58,106,0.2);
+      background: rgba(10,10,30,0.35);
+    }
 </style>
 </head>
 <body>
