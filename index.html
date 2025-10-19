@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ange Niandré Art — Generative Art Studio — Premium Generator v1.0</title>
+  <link rel="stylesheet" href="assets/ui.css" />
+</head>
+<body>
+  <div class="app">
+    <header class="header">
+      <div class="brand">
+        <div class="brand-title">Ange Niandré Art</div>
+        <div class="brand-sub">Generative Art Studio — <strong>Premium Generator v1.0</strong></div>
+        <div class="brand-sub note">Redbubble Optimized Designs</div>
+      </div>
+    </header>
+
+    <main class="main">
+      <div id="canvas-container">
+        <canvas id="artCanvas"></canvas>
+        <div id="status">Ready…</div>
+      </div>
+
+      <div class="toolbar">
+        <button class="action primary" id="btn-generate" disabled>🎨 Generate</button>
+        <button class="action" id="btn-download-png" disabled>⬇️ Download PNG</button>
+        <button class="action" id="btn-download-svg" disabled>⬇️ Download SVG</button>
+        <span class="hint">Engine modules will enable these actions.</span>
+      </div>
+    </main>
+
+    <aside id="sidebar">
+      <div class="panel">
+        <div class="panel-title">Redbubble Export</div>
+
+        <div class="row">
+          <div class="label">Product</div>
+          <div class="chips" id="products">
+            <div class="chip selected" data-product="tshirt">T-shirt</div>
+            <div class="chip" data-product="tote">Tote</div>
+            <div class="chip" data-product="sticker">Sticker</div>
+            <div class="chip" data-product="poster">Poster</div>
+            <div class="chip" data-product="phonecase">Phonecase</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label">Aspect Ratio</div>
+          <div class="chips" id="ratios">
+            <div class="chip selected" data-ratio="1:1">1:1</div>
+            <div class="chip" data-ratio="3:2">3:2</div>
+            <div class="chip" data-ratio="4:3">4:3</div>
+            <div class="chip" data-ratio="16:9">16:9</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <div class="label">Resolution</div>
+          <div class="chips" id="res">
+            <div class="chip selected" data-res="standard">Standard</div>
+            <div class="chip" data-res="premium">Premium</div>
+            <div class="chip" data-res="ultra">Ultra</div>
+          </div>
+        </div>
+
+        <div class="row">
+          <label class="checkbox"><input type="checkbox" id="preserve-ar" checked /> Preserve Aspect Ratio</label>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="panel-title">Color & Tone</div>
+
+        <div class="sliders">
+          <label>Hue <input type="range" min="0" max="360" value="0" id="hue" /></label>
+          <label>Saturation <input type="range" min="0" max="2" step="0.1" value="1" id="sat" /></label>
+          <label>Brightness <input type="range" min="0" max="2" step="0.1" value="1" id="bri" /></label>
+          <label>Contrast <input type="range" min="0" max="2" step="0.1" value="1" id="con" /></label>
+        </div>
+
+        <div class="row">
+          <div class="label">Palette</div>
+          <div class="chips" id="palettes">
+            <div class="chip selected">Aurora</div>
+            <div class="chip">Cosmic</div>
+            <div class="chip">Solar</div>
+            <div class="chip">Oceanic</div>
+            <div class="chip">Monochrome</div>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="row">
+          <label class="checkbox"><input type="checkbox" id="auto-sync" checked /> Synchroniser les paramètres</label>
+        </div>
+
+      </div>
+    </aside>
+
+    <footer class="footer">
+      © 2025 Ange Niandré Art — Generative Art Studio — Premium Generator v1.0. All rights reserved.
+    </footer>
+  </div>
+
+  <script>
+    const chips = document.querySelectorAll('.chip');
+    chips.forEach(ch => ch.addEventListener('click', () => {
+      const group = ch.parentElement;
+      group.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+      ch.classList.add('selected');
+      document.getElementById('status').textContent = 'UI updated — awaiting engine module…';
+    }));
+
+    function fitCanvas(){
+      const wrap = document.getElementById('canvas-container');
+      const c = document.getElementById('artCanvas');
+      const w = wrap.clientWidth, h = wrap.clientHeight;
+      c.width = w; c.height = h;
+      const ctx = c.getContext('2d');
+      const size = 24;
+      for(let y=0;y<h;y+=size){
+        for(let x=0;x<w;x+=size){
+          ctx.fillStyle = ((x/size + y/size)%2===0)?'#1b1c28':'#151625';
+          ctx.fillRect(x,y,size,size);
+        }
+      }
+      ctx.fillStyle = 'rgba(255,255,255,0.6)';
+      ctx.font = '14px monospace';
+      ctx.fillText('Premium Generator v1.0 — UI Skeleton', 16, 26);
+    }
+    window.addEventListener('resize', fitCanvas);
+    window.addEventListener('load', fitCanvas);
+  </script>
+</body>
+</html>
